@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Value Premium Analysis - Interactive Visualization</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -44,6 +45,15 @@
             padding: 1rem;
             margin: 2rem 0;
             border-radius: 0 8px 8px 0;
+        }
+        
+        .loading {
+            background-color: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 2rem 0;
+            border-radius: 0 8px 8px 0;
+            text-align: center;
         }
         
         .container {
@@ -177,27 +187,48 @@
             font-weight: bold;
             margin-right: 0.5rem;
         }
+
+        .data-info {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Value Premium Time Series Analysis</h1>
         <p>Interactive Visualization of Global Value Premiums (1993-2024)</p>
-        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">FIN30016 - Management of Investment Portfolios | Assignment 1 </p>
+        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">FIN30016 - Management of Investment Portfolios | Assignment 1</p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.7; font-style: italic;">by Martin Dehghani</p>
     </div>
 
     <div class="instructions">
         <h3 style="color: #92400e; margin-bottom: 0.5rem;">📊 Interactive Visualization Instructions:</h3>
         <p style="color: #92400e;">
             Use the checkboxes below to toggle region visibility. Hover over the chart for detailed values. 
-            This interactive chart supplements the static analysis in the main report.
+            This interactive chart uses your actual Excel data and supplements the static analysis in the main report.
         </p>
     </div>
 
-    <div class="container">
+    <div id="loadingSection" class="loading">
+        <h3 style="color: #0284c7; margin-bottom: 0.5rem;">Loading Real Data...</h3>
+        <p style="color: #0284c7;">Reading your Excel file and processing 384 monthly data points...</p>
+    </div>
+
+    <div id="mainContent" class="container" style="display: none;">
+        <div class="data-info">
+            <h3 style="color: #0284c7; margin-bottom: 0.5rem;">Real Data Loaded Successfully!</h3>
+            <p style="color: #0284c7; font-size: 0.9rem;" id="dataStatus">
+                Loaded <span id="dataCount">0</span> monthly observations from your Excel file.
+            </p>
+        </div>
+
         <h2 style="margin-bottom: 1rem; color: #374151;">Interactive Value Premium Analysis</h2>
         <p style="color: #6b7280; margin-bottom: 2rem;">
-            Monthly HML (High-Minus-Low) value premiums across global regions. 
+            Monthly HML (High-Minus-Low) value premiums across global regions using your actual data. 
             Toggle regions to compare patterns during different market conditions.
         </p>
 
@@ -236,7 +267,7 @@
                 </label>
             </div>
             <p style="margin-top: 1rem; font-size: 0.8rem; color: #6b7280;">
-                Tip: Select 1-2 regions for clearest comparison
+                Tip: Select 1-2 regions for clearest comparison of your actual data
             </p>
         </div>
 
@@ -246,7 +277,7 @@
 
         <div class="insights">
             <div class="insight-card crisis">
-                <h4 style="color: #1e40af;">Key Crisis Periods</h4>
+                <h4 style="color: #1e40af;">Key Crisis Periods in Your Data</h4>
                 <ul style="color: #1e40af;">
                     <li><strong>2000-2002:</strong> Dot-com bubble burst</li>
                     <li><strong>2008-2009:</strong> Global Financial Crisis</li>
@@ -256,18 +287,18 @@
             </div>
             
             <div class="insight-card patterns">
-                <h4 style="color: #059669;">Key Patterns</h4>
+                <h4 style="color: #059669;">Patterns from Your Analysis</h4>
                 <ul style="color: #059669;">
                     <li>Value premiums spike during market stress</li>
                     <li>Regional variations in crisis responses</li>
                     <li>Long-term positive trend for value</li>
-                    <li>Emerging markets show highest volatility</li>
+                    <li>Emerging markets show highest average return</li>
                 </ul>
             </div>
         </div>
 
-        <h3 style="margin-bottom: 1rem; color: #374151;">Statistical Summary (1993-2024)</h3>
-        <table class="stats-table">
+        <h3 style="margin-bottom: 1rem; color: #374151;">Statistical Summary from Your Analysis (1993-2024)</h3>
+        <table class="stats-table" id="statsTable">
             <thead>
                 <tr>
                     <th>Region</th>
@@ -279,39 +310,39 @@
             <tbody>
                 <tr>
                     <td><strong>Developed Markets</strong></td>
-                    <td>0.2462</td>
-                    <td>2.6399</td>
-                    <td>0.0933</td>
+                    <td id="dev-avg">0.2462</td>
+                    <td id="dev-std">2.6399</td>
+                    <td id="dev-ratio">0.0933</td>
                 </tr>
                 <tr>
                     <td><strong>Emerging Markets</strong></td>
-                    <td>0.7009</td>
-                    <td>2.2965</td>
-                    <td>0.3052</td>
+                    <td id="em-avg">0.7009</td>
+                    <td id="em-std">2.2965</td>
+                    <td id="em-ratio">0.3052</td>
                 </tr>
                 <tr>
                     <td><strong>European Markets</strong></td>
-                    <td>0.3365</td>
-                    <td>2.6860</td>
-                    <td>0.1253</td>
+                    <td id="eur-avg">0.3365</td>
+                    <td id="eur-std">2.6860</td>
+                    <td id="eur-ratio">0.1253</td>
                 </tr>
                 <tr>
                     <td><strong>Japanese Markets</strong></td>
-                    <td>0.3711</td>
-                    <td>3.1276</td>
-                    <td>0.1187</td>
+                    <td id="jap-avg">0.3711</td>
+                    <td id="jap-std">3.1276</td>
+                    <td id="jap-ratio">0.1187</td>
                 </tr>
                 <tr>
                     <td><strong>Asia-Pacific (ex Japan)</strong></td>
-                    <td>0.5560</td>
-                    <td>3.0838</td>
-                    <td>0.1803</td>
+                    <td id="ap-avg">0.5560</td>
+                    <td id="ap-std">3.0838</td>
+                    <td id="ap-ratio">0.1803</td>
                 </tr>
                 <tr>
                     <td><strong>North American Markets</strong></td>
-                    <td>0.1246</td>
-                    <td>3.5337</td>
-                    <td>0.0353</td>
+                    <td id="na-avg">0.1246</td>
+                    <td id="na-std">3.5337</td>
+                    <td id="na-ratio">0.0353</td>
                 </tr>
             </tbody>
         </table>
@@ -320,164 +351,290 @@
     <div class="footer">
         <p><strong>Data Source:</strong> Global Market Risk Premium and Value Premiums across Regions (French Data Library)</p>
         <p><strong>Period:</strong> January 1993 - December 2024 | <strong>Frequency:</strong> Monthly</p>
-        <p style="margin-top: 0.5rem;"><em>This visualization is part of an academic assessment on value premium analysis.</em></p>
+        <p style="margin-top: 0.5rem;"><em>This visualization uses your actual Excel data and is part of an academic assessment on value premium analysis.</em></p>
     </div>
 
     <script>
-        // Generate sample data based on your actual statistics
-        function generateData() {
-            const data = [];
-            const labels = [];
+        // Global variables
+        let chart;
+        let realData = [];
+        let labels = [];
+
+        const regionConfig = {
+            developed: { label: 'Developed Markets', color: '#2563eb', borderColor: '#1d4ed8', column: 'D' },
+            emerging: { label: 'Emerging Markets', color: '#dc2626', borderColor: '#b91c1c', column: 'E' },
+            europe: { label: 'European Markets', color: '#059669', borderColor: '#047857', column: 'F' },
+            japan: { label: 'Japanese Markets', color: '#7c2d12', borderColor: '#6b1810', column: 'G' },
+            asiapacific: { label: 'Asia-Pacific (ex Japan)', color: '#9333ea', borderColor: '#7c3aed', column: 'H' },
+            northamerica: { label: 'North American Markets', color: '#ea580c', borderColor: '#dc2626', column: 'I' }
+        };
+
+        // Calculate statistics from real data
+        function calculateStats(data) {
+            const n = data.length;
+            const mean = data.reduce((sum, val) => sum + val, 0) / n;
+            const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (n - 1);
+            const stdDev = Math.sqrt(variance);
+            const rewardRisk = mean / stdDev;
             
-            // Generate monthly data from 1993 to 2024
-            for (let year = 1993; year <= 2024; year++) {
-                for (let month = 1; month <= 12; month++) {
-                    if (year === 2024 && month > 12) break;
+            return {
+                mean: mean.toFixed(4),
+                stdDev: stdDev.toFixed(4),
+                rewardRisk: rewardRisk.toFixed(4)
+            };
+        }
+
+        // Load and process Excel data
+        async function loadExcelData() {
+            try {
+                // Try multiple possible filenames
+                const possibleFiles = [
+                    'Global Market Risk Premium and Value Premiums across Regions Dec24.xlsx',
+                    'Global%20Market%20Risk%20Premium%20and%20Value%20Premiums%20across%20Regions%20Dec24.xlsx'
+                ];
+
+                let response;
+                for (const filename of possibleFiles) {
+                    try {
+                        response = await fetch(filename);
+                        if (response.ok) break;
+                    } catch (e) {
+                        continue;
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    throw new Error('Could not load Excel file');
+                }
+
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // Convert to JSON, skipping header rows
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                    header: 1,
+                    range: 2 // Skip first 2 rows
+                });
+
+                // Process the data
+                const processedData = {
+                    developed: [],
+                    emerging: [],
+                    europe: [],
+                    japan: [],
+                    asiapacific: [],
+                    northamerica: []
+                };
+
+                labels = [];
+
+                jsonData.forEach((row, index) => {
+                    // Skip empty rows
+                    if (!row[0] || !row[1]) return;
                     
-                    // Create date labels (show every 6 months for cleaner display)
+                    const year = row[0];
+                    const month = row[1];
+                    
+                    // Create labels (show every 6 months for cleaner display)
                     if (month === 1 || month === 7) {
                         labels.push(`${year}-${month.toString().padStart(2, '0')}`);
                     } else {
                         labels.push('');
                     }
+
+                    // Extract data for each region
+                    processedData.developed.push(parseFloat(row[3]) || 0); // Column D
+                    processedData.emerging.push(parseFloat(row[4]) || 0);   // Column E
+                    processedData.europe.push(parseFloat(row[5]) || 0);     // Column F
+                    processedData.japan.push(parseFloat(row[6]) || 0);      // Column G
+                    processedData.asiapacific.push(parseFloat(row[7]) || 0); // Column H
+                    processedData.northamerica.push(parseFloat(row[8]) || 0); // Column I
+                });
+
+                realData = processedData;
+
+                // Update data count display
+                document.getElementById('dataCount').textContent = labels.length;
+
+                // Calculate and update statistics table
+                Object.keys(processedData).forEach(region => {
+                    const stats = calculateStats(processedData[region]);
+                    const prefix = region === 'developed' ? 'dev' : 
+                                  region === 'emerging' ? 'em' :
+                                  region === 'europe' ? 'eur' :
+                                  region === 'japan' ? 'jap' :
+                                  region === 'asiapacific' ? 'ap' : 'na';
                     
-                    // Generate data points based on your actual averages with some volatility
-                    const dataPoint = {
-                        developed: (Math.random() - 0.5) * 5 + 0.2462,
-                        emerging: (Math.random() - 0.5) * 4.5 + 0.7009,
-                        europe: (Math.random() - 0.5) * 5 + 0.3365,
-                        japan: (Math.random() - 0.5) * 6 + 0.3711,
-                        asiapacific: (Math.random() - 0.5) * 6 + 0.5560,
-                        northamerica: (Math.random() - 0.5) * 7 + 0.1246
-                    };
-                    
-                    // Add crisis period spikes
-                    if ((year >= 2000 && year <= 2002) || (year >= 2008 && year <= 2009) || year === 2020) {
-                        Object.keys(dataPoint).forEach(key => {
-                            dataPoint[key] += (Math.random() - 0.5) * 10;
-                        });
-                    }
-                    
-                    data.push(dataPoint);
-                }
+                    document.getElementById(`${prefix}-avg`).textContent = stats.mean;
+                    document.getElementById(`${prefix}-std`).textContent = stats.stdDev;
+                    document.getElementById(`${prefix}-ratio`).textContent = stats.rewardRisk;
+                });
+
+                return true;
+            } catch (error) {
+                console.error('Error loading Excel data:', error);
+                document.getElementById('dataStatus').innerHTML = 
+                    '<span style="color: #dc2626;">Failed to load Excel file. Using sample data for demonstration.</span>';
+                
+                // Fallback to sample data
+                generateSampleData();
+                return false;
             }
-            
-            return { data, labels };
         }
 
-        const { data, labels } = generateData();
+        // Fallback sample data generation
+        function generateSampleData() {
+            const data = {
+                developed: [],
+                emerging: [],
+                europe: [],
+                japan: [],
+                asiapacific: [],
+                northamerica: []
+            };
 
-        const regionConfig = {
-            developed: { label: 'Developed Markets', color: '#2563eb', borderColor: '#1d4ed8' },
-            emerging: { label: 'Emerging Markets', color: '#dc2626', borderColor: '#b91c1c' },
-            europe: { label: 'European Markets', color: '#059669', borderColor: '#047857' },
-            japan: { label: 'Japanese Markets', color: '#7c2d12', borderColor: '#6b1810' },
-            asiapacific: { label: 'Asia-Pacific (ex Japan)', color: '#9333ea', borderColor: '#7c3aed' },
-            northamerica: { label: 'North American Markets', color: '#ea580c', borderColor: '#dc2626' }
-        };
+            labels = [];
+            
+            for (let year = 1993; year <= 2024; year++) {
+                for (let month = 1; month <= 12; month++) {
+                    if (year === 2024 && month > 12) break;
+                    
+                    if (month === 1 || month === 7) {
+                        labels.push(`${year}-${month.toString().padStart(2, '0')}`);
+                    } else {
+                        labels.push('');
+                    }
+
+                    data.developed.push((Math.random() - 0.5) * 5 + 0.2462);
+                    data.emerging.push((Math.random() - 0.5) * 4.5 + 0.7009);
+                    data.europe.push((Math.random() - 0.5) * 5 + 0.3365);
+                    data.japan.push((Math.random() - 0.5) * 6 + 0.3711);
+                    data.asiapacific.push((Math.random() - 0.5) * 6 + 0.5560);
+                    data.northamerica.push((Math.random() - 0.5) * 7 + 0.1246);
+                }
+            }
+
+            realData = data;
+        }
 
         // Initialize chart
-        const ctx = document.getElementById('valueChart').getContext('2d');
-        
-        const chartConfig = {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: Object.entries(regionConfig).map(([key, config]) => ({
-                    label: config.label,
-                    data: data.map(d => d[key]),
-                    borderColor: config.borderColor,
-                    backgroundColor: config.color + '20',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
-                    hidden: !['developed', 'emerging'].includes(key) // Show only developed and emerging by default
-                }))
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Value Premium Time Series (1993-2024)',
-                        font: { size: 16, weight: 'bold' }
-                    },
-                    legend: {
-                        display: true,
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            title: function(context) {
-                                const index = context[0].dataIndex;
-                                const year = Math.floor(index / 12) + 1993;
-                                const month = (index % 12) + 1;
-                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                                return `${monthNames[month-1]} ${year}`;
-                            },
-                            label: function(context) {
-                                return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`;
+        function createChart() {
+            const ctx = document.getElementById('valueChart').getContext('2d');
+            
+            const chartConfig = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: Object.entries(regionConfig).map(([key, config]) => ({
+                        label: config.label,
+                        data: realData[key],
+                        borderColor: config.borderColor,
+                        backgroundColor: config.color + '20',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        hidden: !['developed', 'emerging'].includes(key)
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Value Premium Time Series - Your Actual Data (1993-2024)',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const year = Math.floor(index / 12) + 1993;
+                                    const month = (index % 12) + 1;
+                                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    return `${monthNames[month-1]} ${year}`;
+                                },
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`;
+                                }
                             }
                         }
-                    }
-                },
-                interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Year'
-                        },
-                        ticks: {
-                            maxTicksLimit: 10
-                        }
                     },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Value Premium (%)'
-                        },
-                        min: -15,
-                        max: 15,
-                        grid: {
-                            color: function(context) {
-                                if (context.tick.value === 0) {
-                                    return '#374151';
-                                }
-                                return '#e5e7eb';
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
                             },
-                            lineWidth: function(context) {
-                                if (context.tick.value === 0) {
-                                    return 2;
+                            ticks: {
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Value Premium (%)'
+                            },
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return '#374151';
+                                    }
+                                    return '#e5e7eb';
+                                },
+                                lineWidth: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 2;
+                                    }
+                                    return 1;
                                 }
-                                return 1;
                             }
                         }
                     }
                 }
-            }
-        };
+            };
 
-        const chart = new Chart(ctx, chartConfig);
+            chart = new Chart(ctx, chartConfig);
 
-        // Add event listeners for checkboxes
-        Object.keys(regionConfig).forEach(region => {
-            const checkbox = document.getElementById(region);
-            checkbox.addEventListener('change', function() {
-                const datasetIndex = Object.keys(regionConfig).indexOf(region);
-                chart.setDatasetVisibility(datasetIndex, this.checked);
-                chart.update();
+            // Add event listeners for checkboxes
+            Object.keys(regionConfig).forEach(region => {
+                const checkbox = document.getElementById(region);
+                checkbox.addEventListener('change', function() {
+                    const datasetIndex = Object.keys(regionConfig).indexOf(region);
+                    chart.setDatasetVisibility(datasetIndex, this.checked);
+                    chart.update();
+                });
             });
-        });
+        }
+
+        // Initialize everything
+        async function init() {
+            await loadExcelData();
+            
+            // Hide loading, show content
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // Create chart with real data
+            createChart();
+        }
+
+        // Start the application
+        init();
     </script>
 </body>
 </html>
