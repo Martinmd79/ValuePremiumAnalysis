@@ -1,6 +1,6 @@
 # Value Premium Analysis - Interactive Visualization
 
-Interactive visualization of global value premiums (1993-2024) for academic finance assignment. Features time-series analysis across six regions with crisis period identification.
+Interactive visualization of global value premiums (1993-2024). Features time-series analysis across six regions with crisis period identification.
 
 ## 🔗 Live Interactive Visualization
 **[View Interactive Analysis](https://martinmd79.github.io/ValuePremiumAnalysis/)**
@@ -19,8 +19,6 @@ Global Market Risk Premium and Value Premiums across Regions (French Data Librar
 - **Frequency:** Monthly
 - **Regions:** Developed, Emerging, Europe, Japan, Asia-Pacific, North America
 
-## Academic Context
-This visualization supplements Assignment 1 for FIN30016 - Management of Investment Portfolios, specifically addressing Task 3 time-series analysis requirements.
 
 ## Technology Stack
 - HTML5/CSS3 for presentation
