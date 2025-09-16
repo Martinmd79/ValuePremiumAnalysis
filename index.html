@@ -236,6 +236,11 @@
             <h3>Select Regions to Display:</h3>
             <div class="checkbox-grid">
                 <label class="checkbox-item">
+                    <input type="checkbox" id="global">
+                    <div class="color-box" style="background-color: #6b7280;"></div>
+                     <span>Global Market</span>
+                </label>
+                <label class="checkbox-item">
                     <input type="checkbox" id="developed" checked>
                     <div class="color-box" style="background-color: #2563eb;"></div>
                     <span>Developed Markets</span>
@@ -302,12 +307,18 @@
             <thead>
                 <tr>
                     <th>Region</th>
-                    <th>Avg Return (%)</th>
-                    <th>Std Dev (%)</th>
+                    <th>Avg Return </th>
+                    <th>Std Dev </th>
                     <th>Reward/Risk</th>
                 </tr>
             </thead>
             <tbody>
+                <tr>
+                    <td><strong>Global Market</strong></td>
+                    <td id="global-avg">0.7456</td>
+                    <td id="global-std">4.4267</td>
+                    <td id="global-ratio">0.1684</td>
+                </tr>
                 <tr>
                     <td><strong>Developed Markets</strong></td>
                     <td id="dev-avg">0.2462</td>
@@ -361,6 +372,7 @@
         let labels = [];
 
         const regionConfig = {
+            global: { label: 'Global Market', color: '#6b7280', borderColor: '#4b5563', column: 'C' },
             developed: { label: 'Developed Markets', color: '#2563eb', borderColor: '#1d4ed8', column: 'D' },
             emerging: { label: 'Emerging Markets', color: '#dc2626', borderColor: '#b91c1c', column: 'E' },
             europe: { label: 'European Markets', color: '#059669', borderColor: '#047857', column: 'F' },
@@ -419,6 +431,7 @@
 
                 // Process the data
                 const processedData = {
+                    global: [],
                     developed: [],
                     emerging: [],
                     europe: [],
@@ -444,6 +457,7 @@
                     }
 
                     // Extract data for each region
+                    processedData.global.push(parseFloat(row[2]) || 0); 
                     processedData.developed.push(parseFloat(row[3]) || 0); // Column D
                     processedData.emerging.push(parseFloat(row[4]) || 0);   // Column E
                     processedData.europe.push(parseFloat(row[5]) || 0);     // Column F
@@ -457,18 +471,26 @@
                 // Update data count display
                 document.getElementById('dataCount').textContent = labels.length;
 
+
                 // Calculate and update statistics table
                 Object.keys(processedData).forEach(region => {
                     const stats = calculateStats(processedData[region]);
-                    const prefix = region === 'developed' ? 'dev' : 
-                                  region === 'emerging' ? 'em' :
-                                  region === 'europe' ? 'eur' :
-                                  region === 'japan' ? 'jap' :
-                                  region === 'asiapacific' ? 'ap' : 'na';
-                    
-                    document.getElementById(`${prefix}-avg`).textContent = stats.mean;
-                    document.getElementById(`${prefix}-std`).textContent = stats.stdDev;
-                    document.getElementById(`${prefix}-ratio`).textContent = stats.rewardRisk;
+    
+                    if (region === 'global') {
+                        document.getElementById('global-avg').textContent = stats.mean;
+                        document.getElementById('global-std').textContent = stats.stdDev;
+                        document.getElementById('global-ratio').textContent = stats.rewardRisk;
+                    } else {
+                        const prefix = region === 'developed' ? 'dev' : 
+                                      region === 'emerging' ? 'em' :
+                                      region === 'europe' ? 'eur' :
+                                      region === 'japan' ? 'jap' :
+                                      region === 'asiapacific' ? 'ap' : 'na';
+        
+                        document.getElementById(`${prefix}-avg`).textContent = stats.mean;
+                        document.getElementById(`${prefix}-std`).textContent = stats.stdDev;
+                        document.getElementById(`${prefix}-ratio`).textContent = stats.rewardRisk;
+                    }
                 });
 
                 return true;
